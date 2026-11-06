@@ -7,9 +7,9 @@ import shutil
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 FILES = ("devmode-helper.pyw", "pyproject.toml", "requirements.txt", "requirements-lock.txt",
-         "build.ps1", "README.md", "PUBLISHING.md", "RELEASE_NOTES_0.1.0.md",
+         "build.ps1", "README.md", "PUBLISHING.md", "RELEASE_NOTES_0.1.1.md",
          "LICENSE", "THIRD_PARTY_NOTICES.md", ".gitignore")
 DIRECTORIES = ("ios_devmode_helper", "tests", "packaging", ".github", "third_party")
 
@@ -36,7 +36,7 @@ def main() -> None:
     with zipfile.ZipFile(portable, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         archive.write(exe, "iOS-Developer-Mode-Helper.exe")
         archive.write(source, source.name)
-        for name in ("README.md", "PUBLISHING.md", "RELEASE_NOTES_0.1.0.md", "LICENSE", "THIRD_PARTY_NOTICES.md"):
+        for name in ("README.md", "PUBLISHING.md", "RELEASE_NOTES_0.1.1.md", "LICENSE", "THIRD_PARTY_NOTICES.md"):
             archive.write(ROOT / name, name)
     hashes = []
     for path in (exe, source, portable):

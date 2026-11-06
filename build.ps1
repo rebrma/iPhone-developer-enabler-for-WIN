@@ -28,6 +28,10 @@ try {
     & $buildPython -m PyInstaller --noconfirm --distpath "dist/$layout" --workpath "build/$layout" packaging/helper.spec
     if ($LASTEXITCODE -ne 0) { throw 'Packaging failed.' }
     $exe = if ($OneDir) { Join-Path $root 'dist/onedir/iOS-Developer-Mode-Helper/iOS-Developer-Mode-Helper.exe' } else { Join-Path $root 'dist/onefile/iOS-Developer-Mode-Helper.exe' }
+    if (-not $OneDir) {
+        & $buildPython packaging/check_privacy.py $exe
+        if ($LASTEXITCODE -ne 0) { throw 'Packaged privacy check failed.' }
+    }
     $result = Join-Path $root "build/$layout/frozen-self-test.json"
     if (Test-Path -LiteralPath $result) { Remove-Item -LiteralPath $result }
     $proc = Start-Process -FilePath $exe -ArgumentList @('--self-test','--output',('"' + $result + '"')) -WindowStyle Hidden -PassThru

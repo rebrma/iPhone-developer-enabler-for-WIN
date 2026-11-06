@@ -23,15 +23,15 @@ These are compatibility targets, not a claim that every hardware and OS combinat
 ## Download and run
 
 1. Open this repository's **Releases** page.
-2. Download `iOS-Developer-Mode-Helper-0.1.0-windows-x64.zip` and extract it to a writable folder, such as a folder under Documents.
+2. Download `iOS-Developer-Mode-Helper-0.1.1-windows-x64.zip` and extract it to a writable folder, such as a folder under Documents.
 3. Double-click `iOS-Developer-Mode-Helper.exe`.
 
-The separate `iOS-Developer-Mode-Helper-0.1.0-windows-x64.exe` asset is the same standalone application. The ZIP also contains the license, documentation, and corresponding source archive.
+The separate `iOS-Developer-Mode-Helper-0.1.1-windows-x64.exe` asset is the same standalone application. The ZIP also contains the license, documentation, and corresponding source archive.
 
 The executable is unsigned. Its SHA-256 digest is listed in the release's `SHA256SUMS.txt`. Check the downloaded EXE in PowerShell:
 
 ```powershell
-Get-FileHash .\iOS-Developer-Mode-Helper-0.1.0-windows-x64.exe -Algorithm SHA256
+Get-FileHash .\iOS-Developer-Mode-Helper-0.1.1-windows-x64.exe -Algorithm SHA256
 ```
 
 Compare the result with the matching filename in `SHA256SUMS.txt`.
@@ -78,7 +78,7 @@ The packaged GUI executable supports JSON output through `--output`. Without thi
 Run a status check from the directory containing the downloaded EXE:
 
 ```powershell
-Start-Process -FilePath .\iOS-Developer-Mode-Helper-0.1.0-windows-x64.exe -ArgumentList '--status --output status.json' -WorkingDirectory (Get-Location).Path -Wait
+Start-Process -FilePath .\iOS-Developer-Mode-Helper-0.1.1-windows-x64.exe -ArgumentList '--status --output status.json' -WorkingDirectory (Get-Location).Path -Wait
 Get-Content .\status.json
 ```
 

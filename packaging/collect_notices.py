@@ -16,8 +16,32 @@ ROOT = Path(__file__).resolve().parents[1]
 DEST = ROOT / "third_party"
 
 
+def is_license_entry(entry: str) -> bool:
+    parts = Path(entry).parts
+    lower = [part.lower() for part in parts]
+    if not parts or ".." in parts or "__pycache__" in lower:
+        return False
+    if Path(entry).suffix.lower() in {".pyc", ".pyo", ".pyd", ".dll", ".so"}:
+        return False
+    metadata_license = any(
+        part.endswith(".dist-info") and "licenses" in lower[index + 1:]
+        for index, part in enumerate(lower)
+    )
+    return metadata_license or lower[-1].startswith(("license", "licence", "copying", "notice"))
+
+
 def collect() -> None:
     DEST.mkdir(exist_ok=True)
+    # Only this generated directory is refreshed. Remove stale files from older
+    # collectors so a previous build cannot silently reintroduce bytecode caches.
+    license_root = (DEST / "licenses").resolve()
+    if not license_root.is_relative_to(ROOT.resolve()) or license_root == ROOT.resolve():
+        raise ValueError("License output must remain inside the project")
+    for old in license_root.rglob("*") if license_root.exists() else []:
+        if old.is_symlink():
+            raise ValueError("Symlinks are not allowed in generated license output")
+        if old.is_file():
+            old.unlink()
     packages = []
     for dist in sorted(metadata.distributions(), key=lambda d: d.metadata["Name"].lower()):
         name = dist.metadata["Name"]
@@ -25,10 +49,7 @@ def collect() -> None:
         licenses = []
         for entry in dist.files or []:
             parts = Path(str(entry)).parts
-            if ".." in parts:
-                continue
-            leaf = parts[-1].lower()
-            if not (leaf.startswith(("license", "licence", "copying", "notice")) or "licenses" in parts):
+            if not is_license_entry(str(entry)):
                 continue
             source = Path(dist.locate_file(entry))
             if not source.is_file():

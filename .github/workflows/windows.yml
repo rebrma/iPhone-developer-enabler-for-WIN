@@ -1,0 +1,29 @@
+name: Windows build
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.7'
+          architecture: x64
+      - name: Test and build standalone executable
+        shell: pwsh
+        run: ./build.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iOS-Developer-Mode-Helper-windows-x64
+          path: |
+            dist/onefile/
+            LICENSE
+            README.md
+            THIRD_PARTY_NOTICES.md
+            third_party/
+          if-no-files-found: error

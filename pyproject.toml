@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ios-devmode-helper"
-version = "0.1.0"
+version = "0.1.1"
 description = "USB-only Windows helper for revealing the iOS Developer Mode setting"
 requires-python = ">=3.13"
 license = "GPL-3.0-or-later"

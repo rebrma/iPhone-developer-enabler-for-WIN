@@ -25,17 +25,17 @@ Open `01-repository/ios-devmode-helper/` in File Explorer. Drag its **contents**
 
 Reference: [GitHub file upload documentation](https://docs.github.com/en/repositories/working-with-files/managing-files/adding-a-file-to-a-repository).
 
-## 3. Create release v0.1.0
+## 3. Create release v0.1.1
 
-Open **Releases → Draft a new release** (or **Create a new release**). Create tag `v0.1.0` targeting `main`; set the title to `iOS Developer Mode Helper 0.1.0`.
+Open **Releases → Draft a new release** (or **Create a new release**). Create tag `v0.1.1` targeting `main`; set the title to `iOS Developer Mode Helper 0.1.1`.
 
-Copy the contents of [RELEASE_NOTES_0.1.0.md](RELEASE_NOTES_0.1.0.md) into the description. Attach all four files from `02-release-assets/`:
+Copy the contents of [RELEASE_NOTES_0.1.1.md](RELEASE_NOTES_0.1.1.md) into the description. Attach all four files from `02-release-assets/`:
 
 | File | Purpose |
 | --- | --- |
-| `iOS-Developer-Mode-Helper-0.1.0-windows-x64.exe` | Standalone application |
-| `iOS-Developer-Mode-Helper-0.1.0-windows-x64.zip` | Portable package with documentation, license and corresponding source |
-| `iOS-Developer-Mode-Helper-0.1.0-source.zip` | Complete source package with dependency notices and upstream source archives |
+| `iOS-Developer-Mode-Helper-0.1.1-windows-x64.exe` | Standalone application |
+| `iOS-Developer-Mode-Helper-0.1.1-windows-x64.zip` | Portable package with documentation, license and corresponding source |
+| `iOS-Developer-Mode-Helper-0.1.1-source.zip` | Complete source package with dependency notices and upstream source archives |
 | `SHA256SUMS.txt` | Checksums for the three downloads |
 
 Wait for the attachments to finish uploading, then click **Publish release**. Share the release page with colleagues.
@@ -45,7 +45,7 @@ Reference: [GitHub release management documentation](https://docs.github.com/en/
 ## Included documentation
 
 - [README.md](README.md): requirements, download/install steps, usage, troubleshooting, CLI, privacy, and builds.
-- [RELEASE_NOTES_0.1.0.md](RELEASE_NOTES_0.1.0.md): ready-to-paste release description.
+- [RELEASE_NOTES_0.1.1.md](RELEASE_NOTES_0.1.1.md): ready-to-paste release description.
 - [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and [LICENSE](LICENSE): attribution and license terms.
 
-The automatic GitHub **Source code** download contains the repository snapshot. Attach the supplied `-source.zip` as well: it additionally contains the generated dependency notices and upstream source archives. The provided EXE is unchanged; the upload kit refreshes the documentation and packaging.
+The automatic GitHub **Source code** download contains the repository snapshot. Attach the supplied `-source.zip` as well: it additionally contains the generated dependency notices and upstream source archives. Version 0.1.1 includes the packaging privacy fix. Use only the matching 0.1.1 release assets and checksums.

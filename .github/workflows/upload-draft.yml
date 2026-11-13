@@ -83,7 +83,7 @@ jobs:
           for path in files:
               if path.name.endswith('-source.zip'):
                   source_check(path)
-              elif path.suffix=='.exe' or path.suffix=='':
+              elif path.suffix=='.exe' or path.name.endswith('-linux-x86_64'):
                   issues=scan(path)
                   assert not issues, issues
               elif path.name.endswith('.tar.gz'):
@@ -94,7 +94,7 @@ jobs:
                           if member.name.endswith('-source.zip'): source_check(io.BytesIO(content))
                           if member.name=='iOS-Developer-Mode-Helper':
                               assert member.mode==0o755 and content[:6]==b'\x7fELF\x02\x01'
-                              binary=next(p for p in files if p.suffix=='')
+                              binary=next(p for p in files if p.name.endswith('-linux-x86_64'))
                               assert content==binary.read_bytes()
               elif path.suffix=='.zip':
                   with zipfile.ZipFile(path) as archive:

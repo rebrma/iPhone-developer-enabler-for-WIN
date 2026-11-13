@@ -6,6 +6,8 @@ A portable Windows utility that makes the **Developer Mode** setting available o
 
 The **Reveal setting** button exposes the switch. You finish enabling Developer Mode on the device, including its restart and confirmation. **Check status** reports the actual state separately.
 
+I WILL GLADLY THANKS FOR STAR IF THAT HELP :)
+
 ## Requirements
 
 | Component | Requirement |

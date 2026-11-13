@@ -1,0 +1,119 @@
+name: Upload tested release to draft
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing draft release tag
+        required: true
+      source_sha:
+        description: Exact source commit tested by both builds
+        required: true
+      linux_run:
+        description: Successful Linux build run ID
+        required: true
+      windows_run:
+        description: Successful Windows build run ID
+        required: true
+permissions:
+  contents: write
+  actions: read
+jobs:
+  upload:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ inputs.tag }}
+      SOURCE_SHA: ${{ inputs.source_sha }}
+      LINUX_RUN: ${{ inputs.linux_run }}
+      WINDOWS_RUN: ${{ inputs.windows_run }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_sha }}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13.7'
+      - name: Validate builds and download matching artifacts
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          repo=os.environ['GH_REPO']
+          def api(path): return json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/{path}']))
+          release=next(r for r in api('releases') if r['tag_name']==os.environ['RELEASE_TAG'])
+          assert release['draft'] and release['target_commitish']==os.environ['SOURCE_SHA'], 'Draft must target the tested commit'
+          assert not release['assets'], 'Expected an empty draft; do not overwrite existing downloads'
+          for key,name,artifact in [('LINUX_RUN','Linux build','iOS-Developer-Mode-Helper-linux-x86_64'),('WINDOWS_RUN','Windows build','iOS-Developer-Mode-Helper-windows-x64')]:
+              run=os.environ[key]
+              assert run.isdecimal()
+              info=api(f'actions/runs/{run}')
+              assert info['conclusion']=='success' and info['head_sha']==os.environ['SOURCE_SHA'] and info['name']==name
+              assert info['event'] in ('push','workflow_dispatch') and info['head_repository']['full_name']==repo
+              subprocess.run(['gh','run','download',run,'--name',artifact,'--dir','work/release-assets'],check=True)
+          PY
+      - name: Check both frozen packages and release archives
+        run: |
+          python -m pip install --disable-pip-version-check pyinstaller==6.22.3
+          python - <<'PY'
+          import hashlib, io, json, os, runpy, tarfile, zipfile
+          from pathlib import Path
+          root=Path('work/release-assets')
+          scan=runpy.run_path('packaging/check_privacy.py')['check']
+          files=[]; entries=[]
+          for manifest in sorted(root.glob('SHA256SUMS-*.txt')):
+              for line in manifest.read_text().splitlines():
+                  expected,name=line.split(maxsplit=1)
+                  assert Path(name).name==name
+                  path=root/name
+                  assert hashlib.sha256(path.read_bytes()).hexdigest()==expected, name
+                  entries.append(line); files.append(path)
+          assert len(files)==len(set(files))==6
+          def source_check(path):
+              with zipfile.ZipFile(path) as archive:
+                  assert archive.testzip() is None
+                  for member in archive.namelist():
+                      parts=Path(member).parts
+                      assert not set(parts)&{'.git','work','.venv-build','__pycache__'}, member
+                      assert not member.endswith(('.pyc','.pyo','.p12','.pfx','.mobileprovision')), member
+                  prefix='ios-devmode-helper/'
+                  # Upstream source archives are immutable PyPI inputs, not local build files.
+                  for item in json.loads(archive.read(prefix+'third_party/sources.json')):
+                      assert hashlib.sha256(archive.read(prefix+'third_party/'+item['file'])).hexdigest()==item['sha256']
+          for path in files:
+              if path.name.endswith('-source.zip'):
+                  source_check(path)
+              elif path.suffix=='.exe' or path.suffix=='':
+                  issues=scan(path)
+                  assert not issues, issues
+              elif path.name.endswith('.tar.gz'):
+                  with tarfile.open(path) as archive:
+                      for member in archive.getmembers():
+                          assert (member.uid,member.gid,member.uname,member.gname)==(0,0,'','')
+                          content=archive.extractfile(member).read()
+                          if member.name.endswith('-source.zip'): source_check(io.BytesIO(content))
+                          if member.name=='iOS-Developer-Mode-Helper':
+                              assert member.mode==0o755 and content[:6]==b'\x7fELF\x02\x01'
+                              binary=next(p for p in files if p.suffix=='')
+                              assert content==binary.read_bytes()
+              elif path.suffix=='.zip':
+                  with zipfile.ZipFile(path) as archive:
+                      assert archive.testzip() is None
+                      binary=next(p for p in files if p.suffix=='.exe')
+                      assert archive.read('iOS-Developer-Mode-Helper.exe')==binary.read_bytes()
+                      source=next(n for n in archive.namelist() if n.endswith('-source.zip'))
+                      source_check(io.BytesIO(archive.read(source)))
+          (root/'SHA256SUMS.txt').write_text('\n'.join(sorted(entries))+'\n',encoding='ascii')
+          print('Six release files: hashes, frozen privacy checks, source archives, and native package contents verified.')
+          PY
+      - name: Upload verified files to draft only
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          root=Path('work/release-assets')
+          manifest=root/'SHA256SUMS.txt'
+          names=[line.split(maxsplit=1)[1] for line in manifest.read_text().splitlines()]
+          subprocess.run(['gh','release','upload',os.environ['RELEASE_TAG'],*[str(root/name) for name in names],str(manifest)],check=True)
+          print('Uploaded seven files; release remains a draft for final verification.')
+          PY

@@ -7,13 +7,14 @@ from __future__ import annotations
 import argparse
 import io
 import os
+import re
 from pathlib import Path
 import zipfile
 
 
 def identity_markers(root: Path) -> list[bytes]:
     strings = [str(root.resolve()), str(root.resolve()).replace('\\', '/')]
-    username = os.environ.get('USERNAME', '')
+    username = os.environ.get('USERNAME') or os.environ.get('USER', '')
     # Generic CI/system names also occur in unmodified third-party binaries.
     if len(username) >= 5 and username.casefold() not in {'runner', 'runneradmin', 'admin', 'administrator', 'system'}:
         strings.append(username)
@@ -26,7 +27,9 @@ def identity_markers(root: Path) -> list[bytes]:
 
 def inspect_blob(data: bytes, name: str, markers: list[bytes]) -> list[str]:
     problems = []
-    if any(marker in data.lower() for marker in markers):
+    lowered = data.lower()
+    # Match an identity, not a prefix of an unrelated public project/user name.
+    if any(marker in lowered and re.search(rb'(?<![a-z0-9_])' + re.escape(marker) + rb'(?![a-z0-9_])', lowered) for marker in markers):
         problems.append(f'Local build identity in {name}')
     normalized = name.replace('\\', '/')
     if normalized.startswith('third_party/licenses/') and (

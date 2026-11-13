@@ -1,51 +1,38 @@
-# Publishing on GitHub
+# Publishing Windows and Linux releases
 
-The prepared upload kit has two directories:
+Both platforms are built from the same versioned source commit. Release 0.2.0 includes Windows x64 and Linux x86_64 packages.
 
-```text
-01-repository/ios-devmode-helper/    Source files to upload to the repository
-02-release-assets/                 Finished files to attach to a release
-```
+## Build and verify
 
-## 1. Create the repository
+1. Update the version in `pyproject.toml` and `packaging/version_info.txt`, add matching release notes, and update README download examples.
+2. Push the source. Wait for both the [Windows](.github/workflows/windows.yml) and [Linux](.github/workflows/linux.yml) workflows to pass for that exact commit.
+3. Download the `iOS-Developer-Mode-Helper-windows-x64` and `iOS-Developer-Mode-Helper-linux-x86_64` Actions artifacts. The separate `linux-smoke-evidence` artifact is test evidence, not a release download.
+4. Verify each platform's `SHA256SUMS-<platform>.txt`. Combine their six entries into one `SHA256SUMS.txt` and verify the combined manifest before publishing.
 
-Open [github.com/new](https://github.com/new). Use `ios-devmode-helper` as the repository name, choose the visibility, and leave GitHub's README, .gitignore, and license generation disabled: these files are already provided.
+The workflows run tests and frozen-runtime/privacy checks. Linux also checks the packaged GUI under Xvfb and a clean Ubuntu runtime without Python. A successful build does not establish compatibility with every physical iPhone or distribution.
 
-Suggested description:
+For local builds, see the README. Produce packages with `packaging/make_release.py --exe <native-executable> --out dist/release --platform windows-x64` or `--platform linux-x86_64`. The Linux TAR preserves executable permissions and clears the build host's ownership metadata.
 
-> Portable Windows helper to reveal the iOS Developer Mode setting and check its status over USB.
+## Publish on GitHub
 
-## 2. Upload the source
+Open [Releases](https://github.com/rebrma/iPhone-developer-enabler-for-WIN/releases) and draft a release for tag `v0.2.0`, targeting the exact tested commit. Use the title **iOS Developer Mode Helper 0.2.0 — Windows and Linux** and the contents of [RELEASE_NOTES_0.2.0.md](RELEASE_NOTES_0.2.0.md).
 
-On the empty repository page, select **uploading an existing file**. For an existing repository, use **Add file → Upload files**.
-
-Open `01-repository/ios-devmode-helper/` in File Explorer. Drag its **contents** into the upload area, including `.github` and `.gitignore`. Commit the upload to `main` with a message such as `Initial release`.
-
-`README.md`, `LICENSE`, `build.ps1`, and `ios_devmode_helper/` must appear at the repository root. Upload extracted files rather than a ZIP archive. The release assets belong in the next step.
-
-Reference: [GitHub file upload documentation](https://docs.github.com/en/repositories/working-with-files/managing-files/adding-a-file-to-a-repository).
-
-## 3. Create release v0.1.1
-
-Open **Releases → Draft a new release** (or **Create a new release**). Create tag `v0.1.1` targeting `main`; set the title to `iOS Developer Mode Helper 0.1.1`.
-
-Copy the contents of [RELEASE_NOTES_0.1.1.md](RELEASE_NOTES_0.1.1.md) into the description. Attach all four files from `02-release-assets/`:
+Attach these seven files:
 
 | File | Purpose |
 | --- | --- |
-| `iOS-Developer-Mode-Helper-0.1.1-windows-x64.exe` | Standalone application |
-| `iOS-Developer-Mode-Helper-0.1.1-windows-x64.zip` | Portable package with documentation, license and corresponding source |
-| `iOS-Developer-Mode-Helper-0.1.1-source.zip` | Complete source package with dependency notices and upstream source archives |
-| `SHA256SUMS.txt` | Checksums for the three downloads |
+| `iOS-Developer-Mode-Helper-0.2.0-windows-x64.exe` | Standalone Windows application |
+| `iOS-Developer-Mode-Helper-0.2.0-windows-x64.zip` | Windows app, documentation and corresponding source |
+| `iOS-Developer-Mode-Helper-0.2.0-windows-x64-source.zip` | Windows build source, notices and upstream source archives |
+| `iOS-Developer-Mode-Helper-0.2.0-linux-x86_64` | Standalone Linux ELF executable |
+| `iOS-Developer-Mode-Helper-0.2.0-linux-x86_64.tar.gz` | Linux app, documentation and corresponding source; recommended Linux download |
+| `iOS-Developer-Mode-Helper-0.2.0-linux-x86_64-source.zip` | Linux build source, notices and upstream source archives |
+| `SHA256SUMS.txt` | Checksums for all six downloads |
 
-Wait for the attachments to finish uploading, then click **Publish release**. Share the release page with colleagues.
+Wait until every upload finishes, verify the uploaded hashes, then publish and mark the release as latest. Source ZIPs are platform-specific because the generated dependency inventories and license files differ. Keep both beside the binaries; GitHub's automatic source snapshot does not contain generated dependency notices or upstream archives.
 
-Reference: [GitHub release management documentation](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository).
+GitHub reference: [Managing releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository).
 
-## Included documentation
+## Privacy
 
-- [README.md](README.md): requirements, download/install steps, usage, troubleshooting, CLI, privacy, and builds.
-- [RELEASE_NOTES_0.1.1.md](RELEASE_NOTES_0.1.1.md): ready-to-paste release description.
-- [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and [LICENSE](LICENSE): attribution and license terms.
-
-The automatic GitHub **Source code** download contains the repository snapshot. Attach the supplied `-source.zip` as well: it additionally contains the generated dependency notices and upstream source archives. Version 0.1.1 includes the packaging privacy fix. Use only the matching 0.1.1 release assets and checksums.
+Only upload the generated release files. Never upload the build environment, `work/`, pairing records, SSH keys, device-output JSON, or local logs. The source packager uses an explicit allowlist, excludes cached bytecode, and does not include `.git` or credentials. Keep the packaged privacy check enabled.

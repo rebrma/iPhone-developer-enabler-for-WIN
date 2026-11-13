@@ -1,6 +1,7 @@
 """USB-only pymobiledevice3 backend for Developer Mode reveal/status."""
 from __future__ import annotations
 import asyncio
+import sys
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -87,13 +88,19 @@ class DeveloperModeBackend:
         await self.select(device_id)
         await self._bounded(self.adapter.reveal(device_id))
 
+def device_support_hint() -> str:
+    if sys.platform.startswith("linux"):
+        return "Install/start usbmuxd, reconnect the USB device, unlock it, and accept Trust."
+    return "Install or repair Apple Devices/iTunes drivers, then reconnect the device."
+
+
 def friendly_error(exc: Exception) -> str:
     name = type(exc).__name__.lower(); text = str(exc).lower()
-    if "usbmux" in name or "usbmux" in text: return "Apple device support is unavailable. Install or repair Apple Devices/iTunes drivers, then reconnect the device."
     if "passcode" in name or "passcode" in text: return "The device passcode prevents this operation. Use the manual Settings steps; do not remove your passcode."
     if "passwordprotected" in name or "locked" in name or "locked" in text: return "Unlock the device and try again."
-    if "pair" in name or "trust" in text: return "Unlock the device, tap Trust on the device, then try again."
+    if "pair" in name or "pair" in text or "trust" in text: return "Unlock the device, tap Trust on the device, then try again."
+    if "usbmux" in name or "usbmux" in text: return "USB device support is unavailable. " + device_support_hint()
     if "connection" in name or "disconnect" in text or "brokenpipe" in name: return "The USB device disconnected. Reconnect it and try again."
     if "amfi" in name or "developer" in name: return "This iOS version or device did not accept the Developer Mode request."
-    if "mux" in name or "service" in text: return "Apple device support is unavailable. Install or repair Apple Devices/iTunes drivers, then reconnect the device."
+    if "mux" in name or "service" in text: return "USB device support is unavailable. " + device_support_hint()
     return "The operation failed. Unlock and trust the USB device, reconnect it, and try again."

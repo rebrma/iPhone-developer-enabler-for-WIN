@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 import shutil
 import sys
+import sysconfig
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -68,9 +69,18 @@ def collect() -> None:
     python_license = Path(sys.base_prefix) / "LICENSE.txt"
     if python_license.is_file():
         shutil.copyfile(python_license, runtime / "Python-LICENSE.txt")
+    else:
+        python_license = Path(sysconfig.get_path("stdlib")) / "LICENSE.txt"
+        if python_license.is_file():
+            shutil.copyfile(python_license, runtime / "Python-LICENSE.txt")
     for license_path in (Path(sys.base_prefix) / "tcl").glob("*/license*"):
         if license_path.is_file():
             shutil.copyfile(license_path, runtime / f"{license_path.parent.name}-{license_path.name}.txt")
+    if sys.platform.startswith("linux"):
+        for package in ("tcl8.6", "tk8.6", "libtcl8.6", "libtk8.6"):
+            notice = Path("/usr/share/doc") / package / "copyright"
+            if notice.is_file():
+                shutil.copyfile(notice, runtime / f"{package}-copyright.txt")
     (DEST / "inventory.json").write_text(json.dumps(packages, indent=2, ensure_ascii=False), encoding="utf-8")
 
     sources = []

@@ -1,14 +1,15 @@
 from __future__ import annotations
 import asyncio, queue, threading, tkinter as tk
-from tkinter import ttk
-from .backend import DeveloperModeBackend, HelperError
+from tkinter import ttk, font
+from .backend import DeveloperModeBackend, HelperError, device_support_hint
 
 class Window:
     def __init__(self, root: tk.Tk):
         self.root=root; self.backend=DeveloperModeBackend(); self.devices=[]; self.generation=0
         root.title("iOS Developer Mode Helper"); root.geometry("540x420"); root.minsize(500,390)
         root.protocol("WM_DELETE_WINDOW",self.close)
-        style=ttk.Style(); style.configure("Title.TLabel",font=("Segoe UI",16,"bold")); style.configure("Hint.TLabel",foreground="#555")
+        family=font.nametofont("TkDefaultFont").actual("family")
+        style=ttk.Style(); style.configure("Title.TLabel",font=(family,16,"bold")); style.configure("Hint.TLabel",foreground="#555")
         pane=ttk.Frame(root,padding=22); pane.pack(fill="both",expand=True)
         ttk.Label(pane,text="iOS Developer Mode Helper",style="Title.TLabel").pack(anchor="w")
         ttk.Label(pane,text="Connect an unlocked, trusted iPhone or iPad using USB.",style="Hint.TLabel").pack(anchor="w",pady=(4,18))
@@ -55,7 +56,7 @@ class Window:
             self.devices=devices; self.combo.configure(values=[d.label for d in devices])
             if len(devices)==1: self.combo.current(0); self.state.set("One USB device found. Unlock and trust it before continuing.")
             elif len(devices)>1: self.state.set("Multiple USB devices found. Select the intended device.")
-            else: self.state.set("No USB iPhone or iPad found. Check the cable and Apple device drivers.")
+            else: self.state.set("No USB iPhone or iPad found. Check the data cable. " + device_support_hint())
             self.update_buttons(False)
         self.submit(self.backend.devices,done)
     def check_status(self):
@@ -71,4 +72,8 @@ class Window:
     def close(self): self.generation+=1; self.root.destroy()
 
 def launch():
-    root=tk.Tk(); Window(root); root.mainloop()
+    try:
+        root=tk.Tk()
+    except tk.TclError as exc:
+        raise HelperError("Cannot open the graphical interface. Use a desktop session (X11/XWayland on Linux), or run --list, --status or --reveal in a terminal.") from exc
+    Window(root); root.mainloop()

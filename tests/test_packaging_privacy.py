@@ -23,3 +23,4 @@ class PackagingPrivacyTests(unittest.TestCase):
         self.assertTrue(any('Local build identity' in problem for problem in result))
         self.assertTrue(any('Cached bytecode' in problem for problem in result))
         self.assertEqual(scan(b'Copyright Example Contributors', 'LICENSE', [b'fixture-builder']), [])
+        self.assertEqual(scan(b'https://example.invalid/fixturebuilderx/repo', 'README', [b'fixturebuilder']), [])

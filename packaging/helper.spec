@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import sys
 from PyInstaller.utils.hooks import copy_metadata
 
 root = Path(SPECPATH).parent
@@ -19,12 +20,13 @@ a.datas = [entry for entry in a.datas if not (
     ('__pycache__' in entry[0] or entry[0].lower().endswith(('.pyc', '.pyo')))
 )]
 pyz = PYZ(a.pure)
+options = dict(debug=False, strip=False, upx=False, console=sys.platform != "win32")
+if sys.platform == "win32":
+    options["version"] = str(root / "packaging" / "version_info.txt")
 if one_dir:
     exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name=name,
-              debug=False, strip=False, upx=False, console=False,
-              version=str(root / "packaging" / "version_info.txt"))
+              **options)
     coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name=name)
 else:
     exe = EXE(pyz, a.scripts, a.binaries, a.datas, [], name=name,
-              debug=False, strip=False, upx=False, console=False,
-              version=str(root / "packaging" / "version_info.txt"))
+              **options)

@@ -6,7 +6,7 @@ from .backend import DeveloperModeBackend, HelperError, device_support_hint
 class Window:
     def __init__(self, root: tk.Tk):
         self.root=root; self.backend=DeveloperModeBackend(); self.devices=[]; self.generation=0
-        root.title("iOS Developer Mode Helper"); root.geometry("540x420"); root.minsize(500,390)
+        root.title("iOS Developer Mode Helper"); root.geometry("580x460"); root.minsize(540,430)
         root.protocol("WM_DELETE_WINDOW",self.close)
         family=font.nametofont("TkDefaultFont").actual("family")
         style=ttk.Style(); style.configure("Title.TLabel",font=(family,16,"bold")); style.configure("Hint.TLabel",foreground="#555")

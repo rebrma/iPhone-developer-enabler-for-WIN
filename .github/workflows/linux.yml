@@ -26,7 +26,12 @@ jobs:
         run: xvfb-run -a -s '-screen 0 1024x768x24' .venv-build/bin/python packaging/smoke_linux.py dist/onefile/iOS-Developer-Mode-Helper --screenshot build/linux-gui.png
       - name: Test standalone runtime in clean Ubuntu without Python
         run: |
-          docker run --rm --volume "$PWD/dist/onefile:/app:ro" ubuntu:22.04 /app/iOS-Developer-Mode-Helper --self-test
+          docker run --rm --volume "$PWD/dist/onefile:/app:ro" ubuntu:22.04 bash -ec '
+            apt-get update -qq
+            apt-get install -y --no-install-recommends usbmuxd libusb-1.0-0 libxcb1
+            ! command -v python3
+            /app/iOS-Developer-Mode-Helper --self-test
+          '
       - name: Package release files
         run: .venv-build/bin/python packaging/make_release.py --exe dist/onefile/iOS-Developer-Mode-Helper --out dist/release --platform linux-x86_64
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

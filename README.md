@@ -16,7 +16,7 @@ If this tool helped you, please consider giving the repository a ⭐. I'd really
 | Device | iPhone or iPad running iOS/iPadOS 16 or later with Developer Mode support |
 | Connection | A USB cable supporting data transfer |
 | USB support | Windows: Apple Devices or working Apple Mobile Device support from iTunes. Linux: `usbmuxd` and `libusb` |
-| Graphical interface | Windows desktop, or Linux X11/XWayland desktop; Linux CLI commands also work without a display |
+| Graphical interface | Windows desktop, or Linux X11/XWayland desktop with `libxcb1`; Linux CLI commands also work without a display |
 | Device access | Unlock the device and accept **Trust This Computer** when prompted |
 
 On Windows, start with [Apple's connection instructions](https://support.apple.com/en-us/108643). On Linux, follow the setup below; [usbmuxd](https://github.com/libimobiledevice/usbmuxd) provides the USB transport.
@@ -49,7 +49,7 @@ Install USB support. On Ubuntu/Debian:
 
 ```bash
 sudo apt update
-sudo apt install usbmuxd libusb-1.0-0
+sudo apt install usbmuxd libusb-1.0-0 libxcb1
 ```
 
 The distribution normally starts `usbmuxd` when an Apple USB device is connected. Reconnect and unlock the phone, then accept **Trust This Computer**. Run the helper as your normal desktop user; only package/service administration needs `sudo`.
@@ -63,7 +63,7 @@ cd ios-devmode-helper
 ./iOS-Developer-Mode-Helper
 ```
 
-The archive preserves the executable permission and includes documentation, licenses and corresponding sources. Python and Tcl/Tk are bundled. A compatible glibc-based Linux desktop remains required. For the separate raw binary, run `chmod +x iOS-Developer-Mode-Helper-0.2.0-linux-x86_64` before launching it.
+The archive preserves the executable permission and includes documentation, licenses and corresponding sources. Python and Tcl/Tk are bundled. A compatible glibc-based Linux system and the packages above remain required; `libxcb1` is also needed by the Tk import in `--self-test`. For the separate raw binary, run `chmod +x iOS-Developer-Mode-Helper-0.2.0-linux-x86_64` before launching it.
 
 To verify a downloaded archive, compare `sha256sum iOS-Developer-Mode-Helper-0.2.0-linux-x86_64.tar.gz` with its entry in `SHA256SUMS.txt`.
 
